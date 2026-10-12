@@ -1,6 +1,6 @@
 # Enterprise Loan Default Risk Analytics
 
-### Dashboard Link : https://app.powerbi.com/groups/59e31b2c-bd90-430a-9ddd-a245a846e06e/reports/02374f50-efa5-4c73-9cfc-77f6e6688e20/b9dd284712c7c68e7bc0?experience=power-bi
+### Dashboard Link : https://app.powerbi.com/groups/59e31b2c-bd90-430a-9ddd-a245a846e06e/list?experience=power-bi
 
 ## Problem Statement
 
@@ -12,20 +12,19 @@ With detailed metrics on default rates—such as unemployed applicants exhibitin
 
 ### Steps followed
 
-- Step 1 : Loaded the raw dataset (`Loan_default.csv` containing 19 financial attributes and over 250,000 records) into an on-premises SQL Server database via SQL Server Management Studio (SSMS).
+- Step 1 : Ingested the organization's raw data source (an enterprise Excel file containing 19 financial attributes and over 250,000 records) into an on-premises SQL Server database via SQL Server Management Studio (SSMS) to transition from flat-file storage to a robust, relational database environment.
 - Step 2 : Installed and configured a Power BI "Standard Mode Gateway" to establish a secure, automated bridge between the local SQL Server and the cloud-based Power BI Service.
-- Step 3 : Built a centralized ETL pipeline using Power BI Dataflows (Gen1). This offloads heavy data transformations to the cloud, ensuring faster local desktop performance and establishing a single source of truth for all enterprise reports.
-- Step 4 : Connected Power BI Desktop to the cloud Dataflow to ingest the cleaned, pre-processed semantic model.
+- Step 3 : Built a centralized ETL pipeline using Power BI Dataflows (Gen1)[cite: 5]. The Dataflow was configured to query the `Loan_default` table directly from the SQL Server (`localhost\SQLEXPRESS`, database: `Loan`)[cite: 5]. This offloads heavy data transformations to the cloud, limits direct queries against the on-premises database, and establishes a single source of truth for the enterprise.
+- Step 4 : Connected Power BI Desktop directly to the cloud Dataflow—bypassing the local Excel file and SQL database entirely—to ingest the cleaned, pre-processed semantic model. This architecture allows multiple reporting analysts to build independent dashboards off the exact same standardized ETL logic.
 - Step 5 : Engineered categorical demographic segments to group continuous age values.
 
 For creating this new column, the following DAX expression was written:
-
 ```
-    Age Groups =
-    IF('Loan_default'[Age] <= 19, "Teen",
-        IF('Loan_default'[Age] <= 39, "Adult",
-            IF('Loan_default'[Age] <= 59, "Middle Age Adult",
-           "Senior Citizens")))
+Age Groups =
+IF('Loan_default'[Age] <= 19, "Teen",
+    IF('Loan_default'[Age] <= 39, "Adult",
+        IF('Loan_default'[Age] <= 59, "Middle Age Adult",
+       "Senior Citizens")))
 ```
 
 - Step 6 : Engineered financial segments to facilitate root-cause analysis in AI visuals. A calculated column was created using the `SWITCH` function for optimal DAX performance:
@@ -44,13 +43,12 @@ For creating this new column, the following DAX expression was written:
 - Step 8 : Implemented advanced filter context manipulation to prevent external slicers from distorting baseline KPIs. `ALLEXCEPT` was utilized for isolating dimensions.
 
 Following DAX expression was written for calculating average income strictly anchored to employment type:
-
 ```
-    Average income by Emp Type =
-    CALCULATE(
-        AVERAGE('Loan_default'[Income]),
-        ALLEXCEPT('Loan_default', 'Loan_default'[EmploymentType])
-    )
+Average income by Emp Type =
+CALCULATE(
+    AVERAGE('Loan_default'[Income]),
+    ALLEXCEPT('Loan_default', 'Loan_default'[EmploymentType])
+)
 ```
 
 Snap of the Average Income by Employment Type visual:
@@ -70,20 +68,18 @@ Snap of the Average Income by Employment Type visual:
 - Step 10 : Designed dynamic Time Intelligence measures to track Year-over-Year (YoY) variances. `SUM` was used for continuous monetary growth, while `COUNTROWS` was used to measure the frequency growth of actual default events.
 
 Following DAX expression was written for calculating YoY monetary variance:
-
 ```
-    YOY Loan Amount Change =
-    DIVIDE(
-        CALCULATE(SUM('Loan_default'[LoanAmount]), 'Loan_default'[Year]=YEAR(MAX('Loan_default'[Loan_Date_DD_MM_YYYY]))) -
-        CALCULATE(SUM('Loan_default'[LoanAmount]), 'Loan_default'[Year]=YEAR(MAX('Loan_default'[Loan_Date_DD_MM_YYYY]))-1),
-        CALCULATE(SUM('Loan_default'[LoanAmount]), 'Loan_default'[Year]=YEAR(MAX('Loan_default'[Loan_Date_DD_MM_YYYY]))-1),
-    0) * 100
+YOY Loan Amount Change =
+DIVIDE(
+    CALCULATE(SUM('Loan_default'[LoanAmount]), 'Loan_default'[Year]=YEAR(MAX('Loan_default'[Loan_Date_DD_MM_YYYY]))) -
+    CALCULATE(SUM('Loan_default'[LoanAmount]), 'Loan_default'[Year]=YEAR(MAX('Loan_default'[Loan_Date_DD_MM_YYYY]))-1),
+    CALCULATE(SUM('Loan_default'[LoanAmount]), 'Loan_default'[Year]=YEAR(MAX('Loan_default'[Loan_Date_DD_MM_YYYY]))-1),
+0) * 100
 ```
 
 Snap of the YoY Loan Amount Change line chart:
 
 <img width="631" height="267" alt="SS3" src="https://github.com/user-attachments/assets/4da33049-6b4e-40f0-9b52-9166ca5c8b54" />
-
 
 - Step 11 : Designed a three-page interactive UI: *Loan Default & Overview*, *Applicant Demographics & Financial Profile*, and *Financial Risk Metrics*.
 - Step 12 : Deployed a Decomposition Tree (AI Visual) to allow stakeholders to dynamically break down macro KPIs into micro-components based on Income Bracket and Employment Type.
@@ -127,11 +123,10 @@ Medium Income Bracket Exposure = $1.40 Billion
 Low Income Bracket Exposure = $0.46 Billion
 
 ```
-       Thus, the vast majority of capital risk is concentrated within the High Income applicant bracket.
+Thus, the vast majority of capital risk is concentrated within the High Income applicant bracket.
 ```
 
 ### [2] Default Rates by Employment Status
-
 ```
 a) Unemployed - 3.39 %
 b) Part-time - 3.01 %
@@ -142,12 +137,11 @@ d) Full-time - 2.36 %
 Applicants with full-time employment exhibit the highest reliability in repayment, while unemployed applicants present the highest statistical risk of default.
 
 ### [3] Average Income by Employment Type
-
 ```
-  a) Full-time: $82,890
-  b) Self-employed: $82,447
-  c) Part-time: $82,389
-  d) Unemployed: $82,272
+a) Full-time: $82,890
+b) Self-employed: $82,447
+c) Part-time: $82,389
+d) Unemployed: $82,272
 ```
 
 These averages are secured against external dashboard filtering (via `ALLEXCEPT`), providing a static baseline for applicant income evaluation.
@@ -165,7 +159,7 @@ These averages are secured against external dashboard filtering (via `ALLEXCEPT`
 1.5) Other Loans: $6.49 Billion
 
 ```
-     Capital is distributed highly evenly across all major loan categories, ensuring the institution is not over-leveraged in a single consumer sector.
+Capital is distributed highly evenly across all major loan categories, ensuring the institution is not over-leveraged in a single consumer sector.
 ```
 
 ### [5] Demographic Loan Distribution
@@ -177,3 +171,6 @@ These averages are secured against external dashboard filtering (via `ALLEXCEPT`
 2.3) Middle Age Adult: Average Loan Amount of $127,459
 
 2.4) Senior Citizens: Average Loan Amount of $127,355
+```
+While adults secure slightly higher average loan amounts, the variance across all age demographics remains highly stabilized.
+```
