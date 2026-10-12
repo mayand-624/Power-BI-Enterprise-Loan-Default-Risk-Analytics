@@ -1,6 +1,6 @@
 # Enterprise Loan Default Risk Analytics
 
-### Dashboard Link : Loan Default & Overview - Proj_Dashboard - Power BI
+### Dashboard Link : https://app.powerbi.com/groups/59e31b2c-bd90-430a-9ddd-a245a846e06e/reports/02374f50-efa5-4c73-9cfc-77f6e6688e20/b9dd284712c7c68e7bc0?experience=power-bi
 
 ## Problem Statement
 
